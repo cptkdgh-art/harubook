@@ -22,9 +22,11 @@ export default function RootPage() {
     async function check() {
       const partner = await db.partner.toCollection().first();
       if (partner) {
+        // 기존 사용자: 바로 홈
         router.replace('/home');
       } else {
-        router.replace('/onboarding');
+        // 신규 방문자: 랜딩 먼저 (거기서 '바로 시작하기' → /onboarding)
+        router.replace('/intro');
       }
       setChecking(false);
     }
