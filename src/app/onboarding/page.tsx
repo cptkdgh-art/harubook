@@ -36,6 +36,7 @@ export default function OnboardingPage() {
   const [theme, setTheme] = useState<ThemeType | null>(null);
   const [world, setWorld] = useState<WorldType | null>(null);
   const [name, setName] = useState('');
+  const [userName, setUserName] = useState('');
 
   const next = () => setStep(s => Math.min(s + 1, STEPS.length - 1));
 
@@ -57,7 +58,8 @@ export default function OnboardingPage() {
       name || defaults.name || '파트너',
       theme,
       world,
-      defaults.personality as Personality
+      defaults.personality as Personality,
+      userName.trim() || undefined
     );
     router.push('/home');
   };
@@ -193,27 +195,55 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              {/* Name input */}
-              <div className="relative">
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="이름을 입력하세요"
-                  maxLength={10}
-                  className="w-full text-center text-xl font-bold py-3 px-4 rounded-2xl
-                    bg-card border border-border focus:border-primary focus:outline-none
-                    transition-colors placeholder:text-muted-foreground/40"
-                />
-                <span className="absolute right-3 bottom-3 text-xs text-muted-foreground">
-                  {name.length}/10
-                </span>
+              {/* Partner name input */}
+              <div>
+                <label className="block text-[11px] text-muted-foreground mb-1.5 text-left ml-1">
+                  AI 파트너 이름
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="예: 보리, 그림자, 시아…"
+                    maxLength={10}
+                    className="w-full text-center text-lg font-bold py-3 px-4 rounded-2xl
+                      bg-card border border-border focus:border-primary focus:outline-none
+                      transition-colors placeholder:text-muted-foreground/40"
+                  />
+                  <span className="absolute right-3 bottom-3 text-[10px] text-muted-foreground">
+                    {name.length}/10
+                  </span>
+                </div>
+              </div>
+
+              {/* User name input */}
+              <div>
+                <label className="block text-[11px] text-muted-foreground mb-1.5 text-left ml-1">
+                  당신의 이름 (소설 주인공)
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    placeholder="비워두면 '나'로 불려요"
+                    maxLength={12}
+                    className="w-full text-center text-base font-medium py-3 px-4 rounded-2xl
+                      bg-card border border-border focus:border-primary focus:outline-none
+                      transition-colors placeholder:text-muted-foreground/40"
+                  />
+                  <span className="absolute right-3 bottom-3 text-[10px] text-muted-foreground">
+                    {userName.length}/12
+                  </span>
+                </div>
               </div>
 
               {/* First greeting preview */}
               <div className="bg-card/50 rounded-2xl p-4 border border-border/50">
                 <p className="text-sm text-muted-foreground italic">
-                  &ldquo;안녕, 나는 <span className="text-primary font-medium">{name || '...'}</span>이야.
+                  &ldquo;안녕, <span className="text-primary font-medium">{userName || '너'}</span>.
+                  나는 <span className="text-primary font-medium">{name || '...'}</span>이야.
                   {world === 'fantasy'
                     ? ' 이 숲에서 너를 기다리고 있었어.'
                     : ' 오늘 하루를 함께할게.'

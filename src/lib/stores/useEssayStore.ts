@@ -133,7 +133,8 @@ export const useEssayStore = create<EssayState>((set, get) => ({
           periodStart: range.start,
           periodEnd: range.end,
           previousTeaser,
-          userName,
+          // 우선순위: 함수 인자 > partner에 저장된 닉네임 > undefined → 서버에서 '나' fallback
+          userName: userName || partner.userName,
           currentStage,
           previousStage,
           totalPoints,

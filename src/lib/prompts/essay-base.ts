@@ -134,7 +134,7 @@ ${currentStage.partnerPresence}
 /** 공통 베이스 프롬프트 생성 */
 export function buildBasePrompt(input: EssayPromptInput): string {
   const { partner, todos, periodStart, periodEnd, previousTeaser, userName, userPrompt } = input;
-  const user = userName || '상호';
+  const user = userName?.trim() || partner.userName?.trim() || '나';
   const todoSummary = summarizeTodos(todos);
   const completedCount = todos.filter((t) => t.status === 'completed').length;
   const totalCount = todos.length;

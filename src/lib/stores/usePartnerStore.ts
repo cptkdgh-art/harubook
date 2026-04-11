@@ -19,7 +19,13 @@ interface PartnerState {
   isOnboarded: boolean;
 
   loadPartner: () => Promise<void>;
-  createPartner: (name: string, theme: ThemeType, world: WorldType, personality: Personality) => Promise<void>;
+  createPartner: (
+    name: string,
+    theme: ThemeType,
+    world: WorldType,
+    personality: Personality,
+    userName?: string
+  ) => Promise<void>;
   updatePartner: (changes: Partial<Partner>) => Promise<void>;
 }
 
@@ -36,10 +42,11 @@ export const usePartnerStore = create<PartnerState>((set) => ({
     set({ partner: partner || null, isOnboarded: !!partner });
   },
 
-  createPartner: async (name, theme, world, personality) => {
+  createPartner: async (name, theme, world, personality, userName) => {
     await db.partner.clear();
     const newPartner: Partner = {
       name,
+      userName: userName?.trim() || undefined,
       theme,
       world,
       personality,

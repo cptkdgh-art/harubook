@@ -61,6 +61,7 @@ export default function SettingsPage() {
     clearFeedback,
   } = useBackupStore();
   const [nameInput, setNameInput] = useState('');
+  const [userNameInput, setUserNameInput] = useState('');
   const [showAISetup, setShowAISetup] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [fileStatus, setFileStatus] = useState<{
@@ -90,7 +91,10 @@ export default function SettingsPage() {
   }, [backupSuccess, backupError, clearFeedback]);
 
   useEffect(() => {
-    if (partner) setNameInput(partner.name);
+    if (partner) {
+      setNameInput(partner.name);
+      setUserNameInput(partner.userName ?? '');
+    }
   }, [partner]);
 
   const handleThemeChange = async (theme: ThemeType) => {
@@ -113,6 +117,13 @@ export default function SettingsPage() {
   const handleNameSave = async () => {
     if (!partner || !nameInput.trim() || nameInput === partner.name) return;
     await updatePartner({ name: nameInput.trim() });
+  };
+
+  const handleUserNameSave = async () => {
+    if (!partner) return;
+    const next = userNameInput.trim() || undefined;
+    if (next === (partner.userName ?? undefined)) return;
+    await updatePartner({ userName: next });
   };
 
   const handleResetOnboarding = async () => {
@@ -329,6 +340,40 @@ export default function SettingsPage() {
           <p className="text-[10px] text-muted-foreground/70 mt-2 leading-relaxed">
             💡 보편적인 소설 시장의 톤을 힌트로 쓰는 거예요. 언제든 바꿀 수 있고, 다음에 쓸 소설에만 반영돼요.
           </p>
+        </section>
+
+        {/* ── 나의 이름 (사용자 닉네임) ── */}
+        <section>
+          <h2 className="text-sm font-semibold mb-2 text-muted-foreground">나의 이름 (닉네임)</h2>
+          <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+            소설에서 <b className="text-primary">주인공으로 등장</b>할 당신의 이름이에요.
+            비워두면 그냥 &lsquo;나&rsquo;로 불려요.
+          </p>
+          <div className="flex gap-2">
+            <Input
+              value={userNameInput}
+              onChange={(e) => setUserNameInput(e.target.value)}
+              placeholder="예: 상호, 다인, 시연…"
+              maxLength={12}
+              className="flex-1"
+            />
+            <button
+              onClick={handleUserNameSave}
+              disabled={(userNameInput.trim() || undefined) === (partner?.userName ?? undefined)}
+              className="px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium disabled:opacity-40"
+            >
+              저장
+            </button>
+          </div>
+          {partner?.userName ? (
+            <p className="text-[10px] text-muted-foreground/70 mt-2">
+              지금 당신은 소설에서 <b className="text-foreground">{partner.userName}</b>으로 불려요.
+            </p>
+          ) : (
+            <p className="text-[10px] text-muted-foreground/70 mt-2">
+              아직 닉네임이 없어서 소설에서 <b className="text-foreground">&lsquo;나&rsquo;</b>로 불려요.
+            </p>
+          )}
         </section>
 
         {/* ── 파트너 이름 ── */}

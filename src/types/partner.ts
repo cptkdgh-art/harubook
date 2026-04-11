@@ -23,7 +23,8 @@ export interface Personality {
 
 export interface Partner {
   id?: number;
-  name: string;
+  name: string;                // AI 파트너 이름
+  userName?: string;           // 사용자 본인 이름(닉네임) — 소설에서 주인공 이름으로 쓰임
   theme: ThemeType;           // UI 시각 테마 (4계절 + auto). 나무·파티클과 별개.
   world: WorldType;
   gender?: GenderType;
