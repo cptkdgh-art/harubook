@@ -224,6 +224,11 @@
   position: absolute;
   top: -10%;
   will-change: transform;
+  /* iOS Safari — GPU layer 강제 (모바일에서 애니메이션 안 돌아가는 이슈 방어) */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   animation-name: petal-fall, petal-sway;
   animation-timing-function: linear, ease-in-out;
   animation-iteration-count: infinite, infinite;

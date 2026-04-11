@@ -168,6 +168,49 @@ const STEPS: Step[] = [
     ),
   },
   {
+    emoji: '🌸',
+    title: '계절 따라 바뀌는 나무 · 꾸밈 토글',
+    desc: (
+      <>
+        하루나무는 <b className="text-primary">현재 달에 맞춰</b>
+        <br />
+        자동으로 종이 바뀌어요.
+        <br />
+        <br />
+        <span className="text-[11px] leading-relaxed">
+          🌸 봄: 벚꽃나무 · 분홍 꽃잎
+          <br />
+          🌊 여름: 야자수 · 물방울 · 해변
+          <br />
+          🍁 가을: 단풍나무 · 낙엽 · 단풍 숲
+          <br />
+          ❄️ 겨울: 소나무 · 눈 · 설산
+        </span>
+        <br />
+        <br />
+        배경과 파티클도 <b>통째로 바뀌고</b>, UI 테마도
+        <br />
+        <b className="text-primary">🕰️ 자동 / 봄 / 여름 / 가을 / 겨울</b>로 고를 수 있어요.
+        <br />
+        <br />
+        <span className="text-[11px] text-muted-foreground">
+          💡 홈 우상단의 <b className="text-primary">✨ ON/OFF</b> 로 애니메이션을
+          {' '}켜고 끌 수 있고,
+          <br />
+          <b className="text-primary">🕰️</b> 로 테마, <b className="text-primary">?</b> 로 이 튜토리얼을 언제든 다시 볼 수 있어요.
+        </span>
+      </>
+    ),
+    highlight: (
+      <div className="flex items-center gap-1.5">
+        <span className="text-3xl">🌸</span>
+        <span className="text-3xl">🌊</span>
+        <span className="text-3xl">🍁</span>
+        <span className="text-3xl">❄️</span>
+      </div>
+    ),
+  },
+  {
     emoji: '🧭',
     title: '더 알고 싶다면?',
     desc: (

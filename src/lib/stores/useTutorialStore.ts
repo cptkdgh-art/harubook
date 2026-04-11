@@ -27,7 +27,7 @@ interface TutorialState {
   markSeen: () => void;
 }
 
-export const TUTORIAL_TOTAL_STEPS = 6;
+export const TUTORIAL_TOTAL_STEPS = 7;
 
 export const useTutorialStore = create<TutorialState>((set, get) => ({
   isOpen: false,

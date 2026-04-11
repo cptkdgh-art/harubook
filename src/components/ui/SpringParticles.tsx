@@ -66,8 +66,15 @@ export function SpringParticles() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      className="pointer-events-none fixed inset-0 overflow-hidden harubook-petal-layer"
       data-season={season}
+      style={{
+        // iOS Safari 에서 stacking context 안정화 + GPU layer 강제
+        isolation: 'isolate',
+        transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
+        zIndex: 1,
+      }}
     >
       {petals.map((p) => (
         <span
