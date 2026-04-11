@@ -353,7 +353,7 @@ export default function SettingsPage() {
             <Input
               value={userNameInput}
               onChange={(e) => setUserNameInput(e.target.value)}
-              placeholder="예: 상호, 다인, 시연…"
+              placeholder="예: 다인, 시연, 하준…"
               maxLength={12}
               className="flex-1"
             />
