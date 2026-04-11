@@ -38,6 +38,8 @@ export default function OnboardingPage() {
   const [world, setWorld] = useState<WorldType | null>(null);
   const [name, setName] = useState('');
   const [userName, setUserName] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   /* ── 안전장치 ──
      이미 파트너가 있는 사용자가 실수로 /onboarding 에 재진입하면
@@ -76,16 +78,42 @@ export default function OnboardingPage() {
   };
 
   const handleComplete = async () => {
-    if (!theme || !world) return;
-    const defaults = DEFAULT_PARTNERS[theme];
-    await createPartner(
-      name || defaults.name || '파트너',
-      theme,
-      world,
-      defaults.personality as Personality,
-      userName.trim() || undefined
-    );
-    router.push('/home');
+    if (submitting) return;
+    if (!theme || !world) {
+      setSubmitError('테마와 세계관을 먼저 선택해주세요');
+      return;
+    }
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const defaults = DEFAULT_PARTNERS[theme];
+      await createPartner(
+        name.trim() || defaults.name || '파트너',
+        theme,
+        world,
+        defaults.personality as Personality,
+        userName.trim() || undefined
+      );
+      // 라우팅 — push 가 막히는 엣지 케이스 방어로 replace 사용
+      router.replace('/home');
+      // 그래도 안 넘어가는 경우 최후의 수단
+      setTimeout(() => {
+        if (typeof window !== 'undefined' && window.location.pathname !== '/home') {
+          window.location.href = '/home';
+        }
+      }, 500);
+    } catch (err) {
+      console.error('[onboarding] createPartner failed:', err);
+      const msg =
+        err instanceof Error
+          ? err.message
+          : '설정 저장 중 알 수 없는 오류가 발생했어요';
+      setSubmitError(
+        `저장 실패: ${msg}\n\n` +
+          '시크릿 모드라면 일반 창으로 다시 시도해주세요. IndexedDB 접근이 차단돼 있을 수 있어요.'
+      );
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -278,13 +306,20 @@ export default function OnboardingPage() {
               {/* Complete button */}
               <button
                 onClick={handleComplete}
-                disabled={!name.trim()}
+                disabled={!name.trim() || submitting}
                 className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground
                   font-bold text-base hover:bg-primary/90 active:scale-[0.98]
                   disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
               >
-                시작하기
+                {submitting ? '저장 중…' : '시작하기'}
               </button>
+
+              {/* 에러 메시지 */}
+              {submitError && (
+                <div className="mt-3 p-3 rounded-xl bg-destructive/10 border border-destructive/30 text-[11px] text-destructive whitespace-pre-wrap leading-relaxed text-left">
+                  ⚠️ {submitError}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
