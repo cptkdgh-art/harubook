@@ -128,3 +128,405 @@
     @apply font-sans;
   }
 }
+
+/* ════════════════════════════════
+   UTILITY — 캘린더 스트립 스크롤바 숨김
+   ════════════════════════════════ */
+
+/* Hide scrollbar for calendar strip */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ════════════════════════════════
+   테마 — 봄날 (spring) 🌸
+   벚꽃 폭발, 파스텔 글로우, 아기자기한 봄.
+   ════════════════════════════════ */
+
+/* 하루나무 — 봄날: 분홍 벚꽃 */
+[data-theme="spring"] .haru-tree-box {
+  --haru-leaf-light: #fbb6ce;
+  --haru-leaf-dark: #ec4899;
+  --haru-trunk-light: #b87a5a;
+  --haru-trunk-dark: #78452b;
+  --haru-ground: #f7d4e0;
+  --haru-blossom: #ffffff;
+  --haru-fruit: #e11d48;
+}
+
+[data-theme="spring"] {
+  --background: oklch(0.985 0.018 355);
+  --foreground: oklch(0.3 0.08 355);
+  --card: oklch(1 0.012 340);
+  --card-foreground: oklch(0.3 0.08 355);
+  --popover: oklch(1 0.012 340);
+  --popover-foreground: oklch(0.3 0.08 355);
+  --primary: oklch(0.7 0.2 355);            /* 비비드 체리 블러썸 */
+  --primary-foreground: oklch(0.99 0.005 340);
+  --secondary: oklch(0.82 0.13 300);        /* 진한 라벤더 */
+  --secondary-foreground: oklch(0.25 0.08 300);
+  --muted: oklch(0.96 0.03 340);
+  --muted-foreground: oklch(0.55 0.08 345);
+  --accent: oklch(0.88 0.12 165);           /* 민트 */
+  --accent-foreground: oklch(0.25 0.08 165);
+  --destructive: oklch(0.62 0.22 20);
+  --border: oklch(0.9 0.04 340);
+  --input: oklch(0.96 0.025 340);
+  --ring: oklch(0.7 0.2 355);
+  --radius: 1.125rem;                       /* 더 둥글둥글 */
+
+  --spring-glow: 0 8px 24px -8px oklch(0.7 0.2 355 / 0.45);
+  --spring-gradient:
+    radial-gradient(1200px 600px at 10% -10%, oklch(0.92 0.1 340 / 0.55), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, oklch(0.9 0.1 300 / 0.45), transparent 60%),
+    radial-gradient(700px 400px at 50% 110%, oklch(0.92 0.1 165 / 0.35), transparent 60%);
+}
+
+/* 배경 전체에 부드러운 핑크 그라디언트 */
+[data-theme="spring"] body {
+  background-color: var(--background);
+  background-image: var(--spring-gradient);
+  background-attachment: fixed;
+}
+
+/* 헤더에 벚꽃 잎 느낌 */
+[data-theme="spring"] header {
+  background-image: linear-gradient(
+    180deg,
+    oklch(1 0.02 340 / 0.8),
+    oklch(0.99 0.015 340 / 0.6)
+  ) !important;
+  border-bottom-color: oklch(0.88 0.08 340 / 0.5) !important;
+}
+
+/* 카드/버튼에 핑크 글로우 */
+[data-theme="spring"] .shadow-md,
+[data-theme="spring"] .shadow-lg {
+  box-shadow: var(--spring-glow) !important;
+}
+
+/* 스크롤바 핑크 */
+[data-theme="spring"] ::-webkit-scrollbar-thumb {
+  background: oklch(0.85 0.1 340);
+}
+
+/* 둥근 버튼 강제 */
+[data-theme="spring"] button {
+  letter-spacing: 0.01em;
+}
+
+/* ═══ 계절 파티클 (SpringParticles 컴포넌트, 실제는 4계절 대응) ═══ */
+.harubook-petal {
+  position: absolute;
+  top: -10%;
+  will-change: transform;
+  animation-name: petal-fall, petal-sway;
+  animation-timing-function: linear, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  animation-direction: normal, alternate;
+  filter: drop-shadow(0 2px 6px oklch(0.7 0.2 355 / 0.25));
+}
+
+/* 회전 없는 변형 — 눈송이·물방울 등 */
+.harubook-petal-still {
+  animation-name: petal-fall-still, petal-sway;
+}
+
+@keyframes petal-fall {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate3d(0, 110vh, 0) rotate(720deg);
+  }
+}
+
+@keyframes petal-fall-still {
+  0% {
+    transform: translate3d(0, -10vh, 0);
+  }
+  100% {
+    transform: translate3d(0, 110vh, 0);
+  }
+}
+
+@keyframes petal-sway {
+  0%   { margin-left: 0; }
+  50%  { margin-left: 60px; }
+  100% { margin-left: -60px; }
+}
+
+/* 계절별 파티클 필터 조정 */
+[data-season='summer'] .harubook-petal {
+  filter: drop-shadow(0 2px 6px oklch(0.8 0.15 200 / 0.35));
+}
+[data-season='fall'] .harubook-petal {
+  filter: drop-shadow(0 2px 6px oklch(0.7 0.2 45 / 0.35));
+}
+[data-season='winter'] .harubook-petal {
+  filter: drop-shadow(0 0 8px oklch(0.95 0.02 220 / 0.6));
+}
+
+/* ═══ 봄날 배경 숨쉬기 (그라디언트 천천히 움직임) ═══ */
+[data-theme="spring"] body {
+  background-size: 200% 200%;
+  animation: spring-breathe 18s ease-in-out infinite;
+}
+@keyframes spring-breathe {
+  0%, 100% { background-position: 0% 0%; }
+  50%      { background-position: 100% 100%; }
+}
+
+/* ═══ 봄날 Primary 버튼 숨쉬기 글로우 ═══ */
+[data-theme="spring"] .bg-primary {
+  animation: spring-pulse 3.2s ease-in-out infinite;
+}
+@keyframes spring-pulse {
+  0%, 100% {
+    box-shadow: 0 8px 24px -8px oklch(0.7 0.2 355 / 0.45),
+                0 0 0 0 oklch(0.82 0.18 340 / 0.45);
+  }
+  50% {
+    box-shadow: 0 12px 32px -6px oklch(0.7 0.2 355 / 0.6),
+                0 0 0 10px oklch(0.82 0.18 340 / 0);
+  }
+}
+
+/* ═══ 봄날 CTA 그라디언트 흐르기 ═══ */
+[data-theme="spring"] .harubook-cta {
+  background-image: linear-gradient(
+    135deg,
+    oklch(0.75 0.19 355),
+    oklch(0.78 0.14 320),
+    oklch(0.82 0.12 290),
+    oklch(0.75 0.19 355)
+  ) !important;
+  background-size: 300% 300%;
+  animation: spring-flow 8s ease-in-out infinite;
+}
+@keyframes spring-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* ═══ 봄날 제목 살짝 sparkle ═══ */
+[data-theme="spring"] h1 {
+  background: linear-gradient(
+    90deg,
+    oklch(0.45 0.18 355),
+    oklch(0.55 0.2 320),
+    oklch(0.45 0.18 355)
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: spring-shimmer 5s linear infinite;
+}
+@keyframes spring-shimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ═══ 봄날 카드 hover 살짝 떠오르기 ═══ */
+[data-theme="spring"] .harubook-cta:hover:not(:disabled) {
+  transform: translateY(-2px);
+  transition: transform 0.3s ease;
+}
+
+/* ═══ 모션 민감 사용자는 정적으로 ═══ */
+@media (prefers-reduced-motion: reduce) {
+  .harubook-petal,
+  [data-theme="spring"] body,
+  [data-theme="spring"] .bg-primary,
+  [data-theme="spring"] .harubook-cta,
+  [data-theme="spring"] h1 {
+    animation: none !important;
+  }
+}
+
+/* ════════════════════════════════
+   테마 — 여름 (summer) 🌊
+   바다 · 시원한 블루 · 수영장 · 샌드
+   ════════════════════════════════ */
+
+[data-theme="summer"] {
+  --background: oklch(0.985 0.015 210);
+  --foreground: oklch(0.25 0.06 220);
+  --card: oklch(1 0.008 210);
+  --card-foreground: oklch(0.25 0.06 220);
+  --popover: oklch(1 0.008 210);
+  --popover-foreground: oklch(0.25 0.06 220);
+  --primary: oklch(0.65 0.18 215);
+  --primary-foreground: oklch(0.99 0.005 210);
+  --secondary: oklch(0.75 0.14 185);
+  --secondary-foreground: oklch(0.2 0.05 200);
+  --muted: oklch(0.95 0.02 210);
+  --muted-foreground: oklch(0.5 0.06 215);
+  --accent: oklch(0.9 0.08 85);
+  --accent-foreground: oklch(0.25 0.05 85);
+  --destructive: oklch(0.62 0.22 20);
+  --border: oklch(0.88 0.035 210);
+  --input: oklch(0.96 0.022 210);
+  --ring: oklch(0.65 0.18 215);
+  --radius: 1rem;
+}
+
+[data-theme="summer"] body {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(1200px 600px at 10% -10%, oklch(0.88 0.12 200 / 0.55), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, oklch(0.92 0.1 180 / 0.45), transparent 60%),
+    radial-gradient(700px 400px at 50% 110%, oklch(0.92 0.08 85 / 0.35), transparent 60%);
+  background-attachment: fixed;
+}
+
+[data-theme="summer"] h1 {
+  background: linear-gradient(90deg, oklch(0.4 0.15 215), oklch(0.55 0.2 195), oklch(0.4 0.15 215));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: spring-shimmer 5s linear infinite;
+}
+
+[data-theme="summer"] .bg-primary {
+  box-shadow: 0 8px 24px -8px oklch(0.65 0.18 215 / 0.5);
+  animation: summer-wave 4s ease-in-out infinite;
+}
+@keyframes summer-wave {
+  0%, 100% { box-shadow: 0 8px 24px -8px oklch(0.65 0.18 215 / 0.5), 0 0 0 0 oklch(0.75 0.16 200 / 0.45); }
+  50%      { box-shadow: 0 12px 32px -6px oklch(0.65 0.18 215 / 0.65), 0 0 0 12px oklch(0.75 0.16 200 / 0); }
+}
+
+[data-theme="summer"] .harubook-cta {
+  background-image: linear-gradient(135deg, oklch(0.7 0.17 215), oklch(0.75 0.14 195), oklch(0.8 0.1 175), oklch(0.7 0.17 215)) !important;
+  background-size: 300% 300%;
+  animation: spring-flow 8s ease-in-out infinite;
+}
+
+/* ════════════════════════════════
+   테마 — 가을 (fall) 🍁
+   ════════════════════════════════ */
+
+[data-theme="fall"] {
+  --background: oklch(0.975 0.02 70);
+  --foreground: oklch(0.28 0.08 45);
+  --card: oklch(1 0.012 70);
+  --card-foreground: oklch(0.28 0.08 45);
+  --popover: oklch(1 0.012 70);
+  --popover-foreground: oklch(0.28 0.08 45);
+  --primary: oklch(0.68 0.2 50);
+  --primary-foreground: oklch(0.99 0.005 70);
+  --secondary: oklch(0.6 0.18 30);
+  --secondary-foreground: oklch(0.99 0.005 30);
+  --muted: oklch(0.94 0.03 70);
+  --muted-foreground: oklch(0.5 0.08 50);
+  --accent: oklch(0.88 0.1 85);
+  --accent-foreground: oklch(0.25 0.06 85);
+  --destructive: oklch(0.62 0.22 20);
+  --border: oklch(0.88 0.04 60);
+  --input: oklch(0.96 0.025 70);
+  --ring: oklch(0.68 0.2 50);
+  --radius: 0.875rem;
+}
+
+[data-theme="fall"] body {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(1200px 600px at 10% -10%, oklch(0.9 0.12 50 / 0.5), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, oklch(0.88 0.14 30 / 0.4), transparent 60%),
+    radial-gradient(700px 400px at 50% 110%, oklch(0.9 0.1 85 / 0.3), transparent 60%);
+  background-attachment: fixed;
+}
+
+[data-theme="fall"] h1 {
+  background: linear-gradient(90deg, oklch(0.45 0.18 50), oklch(0.58 0.22 40), oklch(0.45 0.18 50));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: spring-shimmer 5s linear infinite;
+}
+
+[data-theme="fall"] .bg-primary {
+  box-shadow: 0 8px 24px -8px oklch(0.68 0.2 50 / 0.5);
+  animation: spring-pulse 3.5s ease-in-out infinite;
+}
+
+[data-theme="fall"] .harubook-cta {
+  background-image: linear-gradient(135deg, oklch(0.72 0.19 55), oklch(0.68 0.2 40), oklch(0.72 0.19 55)) !important;
+  background-size: 300% 300%;
+  animation: spring-flow 8s ease-in-out infinite;
+}
+
+/* ════════════════════════════════
+   테마 — 겨울 (winter) ❄️
+   ════════════════════════════════ */
+
+[data-theme="winter"] {
+  --background: oklch(0.97 0.015 230);
+  --foreground: oklch(0.28 0.04 250);
+  --card: oklch(1 0.008 230);
+  --card-foreground: oklch(0.28 0.04 250);
+  --popover: oklch(1 0.008 230);
+  --popover-foreground: oklch(0.28 0.04 250);
+  --primary: oklch(0.55 0.14 240);
+  --primary-foreground: oklch(0.99 0.005 230);
+  --secondary: oklch(0.72 0.08 220);
+  --secondary-foreground: oklch(0.2 0.04 240);
+  --muted: oklch(0.94 0.02 230);
+  --muted-foreground: oklch(0.5 0.05 240);
+  --accent: oklch(0.9 0.04 250);
+  --accent-foreground: oklch(0.28 0.04 250);
+  --destructive: oklch(0.62 0.22 20);
+  --border: oklch(0.88 0.03 230);
+  --input: oklch(0.96 0.015 230);
+  --ring: oklch(0.55 0.14 240);
+  --radius: 0.75rem;
+}
+
+[data-theme="winter"] body {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(1200px 600px at 10% -10%, oklch(0.95 0.04 220 / 0.6), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, oklch(0.97 0.025 200 / 0.5), transparent 60%),
+    radial-gradient(700px 400px at 50% 110%, oklch(0.92 0.05 260 / 0.35), transparent 60%);
+  background-attachment: fixed;
+}
+
+[data-theme="winter"] h1 {
+  background: linear-gradient(90deg, oklch(0.4 0.12 250), oklch(0.55 0.16 230), oklch(0.4 0.12 250));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: spring-shimmer 5s linear infinite;
+}
+
+[data-theme="winter"] .bg-primary {
+  box-shadow: 0 6px 20px -6px oklch(0.55 0.14 240 / 0.4);
+}
+
+[data-theme="winter"] .harubook-cta {
+  background-image: linear-gradient(135deg, oklch(0.6 0.14 240), oklch(0.68 0.1 210), oklch(0.6 0.14 240)) !important;
+  background-size: 300% 300%;
+  animation: spring-flow 10s ease-in-out infinite;
+}
+
+/* ════════════════════════════════
+   애니메이션 전역 정지 스위치
+   html[data-animate="off"] → 파티클/펄스/shimmer 전부 정지
+   ════════════════════════════════ */
+
+html[data-animate="off"] .harubook-petal { display: none; }
+html[data-animate="off"] [data-theme] .bg-primary,
+html[data-animate="off"] [data-theme] h1,
+html[data-animate="off"] [data-theme] .harubook-cta,
+html[data-animate="off"] [data-theme] body {
+  animation: none !important;
+}

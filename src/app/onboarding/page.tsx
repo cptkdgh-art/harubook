@@ -1,0 +1,241 @@
+/**
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * 📘 하루책 (Harubook)
+ * 📂 app/onboarding / 온보딩 3단계 플로우
+ * 🔧 진폭 × 리듬-상호
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ */
+
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { usePartnerStore } from '@/lib/stores/usePartnerStore';
+import { DEFAULT_PARTNERS, THEME_LABELS } from '@/types/partner';
+import type { ThemeType, WorldType, Personality } from '@/types/partner';
+
+const THEME_OPTIONS: { key: ThemeType; accent: string }[] = [
+  { key: 'auto',   accent: 'border-primary/50 hover:border-primary' },
+  { key: 'spring', accent: 'border-pink-300 hover:border-pink-400' },
+  { key: 'summer', accent: 'border-sky-300 hover:border-sky-400' },
+  { key: 'fall',   accent: 'border-amber-300 hover:border-amber-400' },
+  { key: 'winter', accent: 'border-slate-300 hover:border-slate-400' },
+];
+
+/* ════════════════════════════════ */
+
+const STEPS = ['theme', 'world', 'partner'] as const;
+
+/* ════════════════════════════════ */
+
+export default function OnboardingPage() {
+  const router = useRouter();
+  const { createPartner } = usePartnerStore();
+  const [step, setStep] = useState(0);
+  const [theme, setTheme] = useState<ThemeType | null>(null);
+  const [world, setWorld] = useState<WorldType | null>(null);
+  const [name, setName] = useState('');
+
+  const next = () => setStep(s => Math.min(s + 1, STEPS.length - 1));
+
+  const handleThemeSelect = (t: ThemeType) => {
+    setTheme(t);
+    setName(DEFAULT_PARTNERS[t].name || '');
+    setTimeout(next, 300);
+  };
+
+  const handleWorldSelect = (w: WorldType) => {
+    setWorld(w);
+    setTimeout(next, 300);
+  };
+
+  const handleComplete = async () => {
+    if (!theme || !world) return;
+    const defaults = DEFAULT_PARTNERS[theme];
+    await createPartner(
+      name || defaults.name || '파트너',
+      theme,
+      world,
+      defaults.personality as Personality
+    );
+    router.push('/home');
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+
+      {/* Progress dots */}
+      <div className="flex gap-2 mb-12">
+        {STEPS.map((_, i) => (
+          <div
+            key={i}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i === step
+                ? 'w-8 bg-primary'
+                : i < step
+                ? 'w-4 bg-primary/40'
+                : 'w-4 bg-muted'
+            }`}
+          />
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+
+        {/* ── Step 1: Theme ── */}
+        {step === 0 && (
+          <motion.div
+            key="theme"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="w-full max-w-md text-center space-y-8"
+          >
+            <div>
+              <h1 className="text-2xl font-bold mb-2">어떤 분위기가 좋아요?</h1>
+              <p className="text-muted-foreground text-sm">당신의 하루를 기록할 톤을 골라주세요</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {THEME_OPTIONS.map(({ key, accent }) => {
+                const meta = THEME_LABELS[key];
+                const selected = theme === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => handleThemeSelect(key)}
+                    className={`p-5 rounded-2xl border-2 transition-all duration-300 text-left
+                      ${selected
+                        ? 'border-primary bg-primary/5 scale-[1.02]'
+                        : `border-border ${accent}`
+                      }`}
+                  >
+                    <div className="text-3xl mb-2">{meta.emoji}</div>
+                    <h3 className="font-bold text-base">{meta.label}</h3>
+                    <p className="text-[11px] text-muted-foreground mt-1 leading-snug">
+                      {meta.tagline}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+              🌳 나무와 파티클은 현재 달에 자동으로 맞춰지고,<br />
+              테마는 UI 색감만 결정해요
+            </p>
+          </motion.div>
+        )}
+
+        {/* ── Step 2: World ── */}
+        {step === 1 && (
+          <motion.div
+            key="world"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="w-full max-w-md text-center space-y-8"
+          >
+            <div>
+              <h1 className="text-2xl font-bold mb-2">어떤 세계에서 살고 싶어요?</h1>
+              <p className="text-muted-foreground text-sm">이야기의 배경이 됩니다</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => handleWorldSelect('modern')}
+                className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left
+                  ${world === 'modern'
+                    ? 'border-sky-400 bg-sky-50 dark:bg-sky-950/30 scale-[1.02]'
+                    : 'border-border hover:border-sky-300'
+                  }`}
+              >
+                <div className="text-4xl mb-3">🏙️</div>
+                <h3 className="font-bold text-lg">현대</h3>
+                <p className="text-xs text-muted-foreground mt-1">카페, 공원, 도시<br />일상의 기록</p>
+              </button>
+
+              <button
+                onClick={() => handleWorldSelect('fantasy')}
+                className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left
+                  ${world === 'fantasy'
+                    ? 'border-violet-400 bg-violet-50 dark:bg-violet-950/30 scale-[1.02]'
+                    : 'border-border hover:border-violet-300'
+                  }`}
+              >
+                <div className="text-4xl mb-3">🌲</div>
+                <h3 className="font-bold text-lg">판타지</h3>
+                <p className="text-xs text-muted-foreground mt-1">숲, 마법, 모험<br />동화 같은 이야기</p>
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Step 3: Partner ── */}
+        {step === 2 && (
+          <motion.div
+            key="partner"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="w-full max-w-md text-center space-y-8"
+          >
+            <div>
+              <h1 className="text-2xl font-bold mb-2">파트너의 이름을 지어주세요</h1>
+              <p className="text-muted-foreground text-sm">당신의 하루를 함께할 존재입니다</p>
+            </div>
+
+            <div className="space-y-6">
+              {/* Avatar */}
+              <div className="flex justify-center">
+                <div className="w-24 h-24 rounded-full flex items-center justify-center text-4xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20">
+                  {theme ? THEME_LABELS[theme].emoji : '🌿'}
+                </div>
+              </div>
+
+              {/* Name input */}
+              <div className="relative">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="이름을 입력하세요"
+                  maxLength={10}
+                  className="w-full text-center text-xl font-bold py-3 px-4 rounded-2xl
+                    bg-card border border-border focus:border-primary focus:outline-none
+                    transition-colors placeholder:text-muted-foreground/40"
+                />
+                <span className="absolute right-3 bottom-3 text-xs text-muted-foreground">
+                  {name.length}/10
+                </span>
+              </div>
+
+              {/* First greeting preview */}
+              <div className="bg-card/50 rounded-2xl p-4 border border-border/50">
+                <p className="text-sm text-muted-foreground italic">
+                  &ldquo;안녕, 나는 <span className="text-primary font-medium">{name || '...'}</span>이야.
+                  {world === 'fantasy'
+                    ? ' 이 숲에서 너를 기다리고 있었어.'
+                    : ' 오늘 하루를 함께할게.'
+                  }&rdquo;
+                </p>
+              </div>
+
+              {/* Complete button */}
+              <button
+                onClick={handleComplete}
+                disabled={!name.trim()}
+                className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground
+                  font-bold text-base hover:bg-primary/90 active:scale-[0.98]
+                  disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                시작하기
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+      </AnimatePresence>
+    </div>
+  );
+}
