@@ -194,10 +194,21 @@ const STEPS: Step[] = [
         <br />
         <br />
         <span className="text-[11px] text-muted-foreground">
-          💡 홈 우상단의 <b className="text-primary">✨ ON/OFF</b> 로 애니메이션을
-          {' '}켜고 끌 수 있고,
+          💡 홈 우상단에 빠른 토글 4개가 있어요:
           <br />
-          <b className="text-primary">🕰️</b> 로 테마, <b className="text-primary">?</b> 로 이 튜토리얼을 언제든 다시 볼 수 있어요.
+          <b className="text-primary">?</b> 튜토리얼 다시 보기 ·{' '}
+          <b className="text-primary">🕰️</b> 테마 순환
+          <br />
+          <b className="text-primary">Aa</b> 글씨 크기 4단계 (90%~125%) — 작으면 키워보세요
+          <br />
+          <b className="text-primary">✨ ON/OFF</b> 꾸밈 애니메이션 (파티클·숨쉬기 효과)
+          <br />
+          <br />
+          ⚠️ <b>파티클 애니메이션은 PC 전용이에요.</b>
+          <br />
+          모바일에선 기기 성능·배터리를 위해 꺼져 있어요.
+          <br />
+          다른 기능은 모바일에서도 그대로 작동합니다.
         </span>
       </>
     ),

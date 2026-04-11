@@ -227,6 +227,48 @@ export default function GuidePage() {
           </div>
         </section>
 
+        {/* 홈 헤더 4개 토글 안내 */}
+        <section className="rounded-2xl border border-border/50 bg-card/60 p-5 space-y-2">
+          <h3 className="text-sm font-bold flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-primary" /> 홈 헤더 우상단 · 4개 빠른 토글
+          </h3>
+          <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
+            홈 화면 오른쪽 위에 파트너 인사 옆에 작은 원형 버튼 4개가 있어요.
+            각 버튼을 탭하면 바로 설정이 바뀌어요.
+          </p>
+          <ul className="text-[11px] text-muted-foreground space-y-1.5 leading-relaxed">
+            <li>
+              <b className="text-primary">?</b> — 튜토리얼 다시 보기 (언제든 처음부터)
+            </li>
+            <li>
+              <b className="text-primary">Aa</b> — 글씨 크기 4단계 순환{' '}
+              <span className="text-[10px]">
+                (보통 → 크게 → 더 크게 → 작게 → 보통)
+              </span>
+              <br />
+              <span className="text-[10px] ml-4">
+                UI 전체가 비례 스케일 (90%~125%). 모바일에서도 작동.
+              </span>
+            </li>
+            <li>
+              <b className="text-primary">✨ ON/OFF</b> — 꾸밈 애니메이션 켜고 끄기{' '}
+              <span className="text-[10px]">(파티클·숨쉬기 효과)</span>
+              <br />
+              <span className="text-[10px] ml-4 text-amber-600 dark:text-amber-400">
+                ⚠️ 파티클 애니메이션은 PC 전용입니다. 모바일은 성능·배터리를 위해
+                자동으로 꺼져 있어요.
+              </span>
+            </li>
+            <li>
+              <b className="text-primary">🕰️</b> — UI 테마 순환{' '}
+              <span className="text-[10px]">(자동 / 봄 / 여름 / 가을 / 겨울)</span>
+            </li>
+          </ul>
+          <p className="text-[10px] text-muted-foreground/70 leading-relaxed pt-1">
+            💡 모든 설정은 localStorage 에 저장돼서 새로고침해도 유지돼요.
+          </p>
+        </section>
+
         {/* 유용한 팁 */}
         <section className="rounded-2xl border border-border/50 bg-card/60 p-5 space-y-2">
           <h3 className="text-sm font-bold flex items-center gap-1.5">
@@ -239,12 +281,15 @@ export default function GuidePage() {
             </li>
             <li>📌 카테고리 고민되면 자동 분류 그대로 둬도 OK — 포인트만 다르게 쌓여요</li>
             <li>🌙 겨울 테마는 다크 모드가 자동 적용돼서 밤에 눈이 편해요</li>
+            <li>
+              🔍 글씨가 작다면 홈 우상단 <b>Aa</b> 버튼으로 한두 단계 키워보세요
+            </li>
             <li>📆 월 헤더 탭하면 풀 캘린더 팝업이 뜨는 거 아세요?</li>
             <li>
               🔑 AI 키 입력 전에도 <b>파일로 저장하기</b>는 로그인 없이 바로 써요
             </li>
             <li>
-              ✨ 이야기 탭의 <b>"이번 주 이야기 쓰기"</b>는 9~15초 걸려요 (AI 응답 대기)
+              ✨ 이야기 탭의 <b>이야기 쓰기</b>는 9~15초 걸려요 (AI 응답 대기)
             </li>
           </ul>
         </section>

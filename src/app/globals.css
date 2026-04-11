@@ -571,19 +571,17 @@ html[data-font-scale="xl"] body { zoom: 1.25; }
   }
 }
 
+/* ════════════════════════════════
+   모바일: 파티클 애니메이션 완전 제거
+   iOS Safari 의 position: fixed + overflow: hidden + animation 조합
+   버그가 기기·버전별로 일관되지 않아서, 모바일에선 파티클 레이어 자체를
+   숨기고 UI 반응 애니(버튼 hover, theme 전환)만 유지.
+   PC (data-animate) 토글은 그대로 작동.
+   ════════════════════════════════ */
+
 @media (max-width: 640px) {
-  /* 모바일에서 파티클이 안 보일 정도로 작지 않게 최소 1.1rem 강제 */
+  .harubook-petal-layer,
   .harubook-petal {
-    min-width: 1.2rem;
-    min-height: 1.2rem;
-    /* iOS Safari 에서 overflow: hidden + position: fixed 자식 animation
-       안 돌아가는 이슈 대응 — GPU 레이어 재강제 */
-    -webkit-animation-play-state: running !important;
-    animation-play-state: running !important;
-  }
-  .harubook-petal-layer {
-    /* 모바일 Safari 의 stacking context 버그 방어 */
-    -webkit-transform: translate3d(0, 0, 0) !important;
-    transform: translate3d(0, 0, 0) !important;
+    display: none !important;
   }
 }
