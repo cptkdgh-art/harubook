@@ -9,7 +9,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Sparkles, Loader2, Wand2, ChevronDown, ChevronUp, Coins } from 'lucide-react';
+import { BookOpen, Sparkles, Loader2, Wand2, Dices, Coins } from 'lucide-react';
 import { useEssayStore, getWeekRange } from '@/lib/stores/useEssayStore';
 import { usePartnerStore } from '@/lib/stores/usePartnerStore';
 import { useAIStore } from '@/lib/stores/useAIStore';
@@ -17,7 +17,7 @@ import {
   useStatsStore,
   selectEffectivePointsForDate,
 } from '@/lib/stores/useStatsStore';
-import { ESSAY_POINT_COST } from '@/types/stats';
+import { ESSAY_CUSTOM_COST } from '@/types/stats';
 import { EssayCard } from '@/components/story/EssayCard';
 import { EssayReader } from '@/components/story/EssayReader';
 import { PeriodPicker, type PeriodValue } from '@/components/story/PeriodPicker';
@@ -40,7 +40,7 @@ export default function StoryPage() {
   const { stats, loadStats } = useStatsStore();
   const [showSetupHint, setShowSetupHint] = useState(false);
   const [userPrompt, setUserPrompt] = useState('');
-  const [promptOpen, setPromptOpen] = useState(false);
+  const [mode, setMode] = useState<'free' | 'custom'>('free');
 
   // 기본 기간: 이번 주
   const initialPeriod = useMemo<PeriodValue>(() => {
@@ -61,8 +61,8 @@ export default function StoryPage() {
     () => selectEffectivePointsForDate(stats, period.start),
     [stats, period.start]
   );
-  const canAfford = effectivePoints >= ESSAY_POINT_COST;
-  const shortBy = Math.max(0, ESSAY_POINT_COST - effectivePoints);
+  const canAffordCustom = effectivePoints >= ESSAY_CUSTOM_COST;
+  const shortBy = Math.max(0, ESSAY_CUSTOM_COST - effectivePoints);
 
   const selectedEssay = useMemo(
     () => essays.find((e) => e.id === selectedEssayId) || null,
@@ -81,12 +81,12 @@ export default function StoryPage() {
       aiConfig: config,
       weekStart: period.start,
       weekEnd: period.end,
-      userPrompt: userPrompt.trim() || undefined,
+      // 커스텀 모드일 때만 userPrompt 전달 — 그래야 useEssayStore가 비용을 차감
+      userPrompt: mode === 'custom' ? userPrompt.trim() || undefined : undefined,
     });
-    if (result) {
-      // 성공 시 입력란 비우기
+    if (result && mode === 'custom') {
+      // 커스텀 성공 시 입력란 비우기 (한 번 쓴 프롬프트 반복 방지)
       setUserPrompt('');
-      setPromptOpen(false);
     }
   };
 
@@ -125,41 +125,70 @@ export default function StoryPage() {
         {/* 기간 선택 */}
         <PeriodPicker value={period} onChange={setPeriod} />
 
-        {/* 포인트 상태 + 작가 노트 + CTA */}
+        {/* 포인트 상태 + 모드 탭 + CTA */}
         <div className="rounded-2xl border border-border/50 bg-card/60 p-3 space-y-3">
           {/* 포인트 잔고 라인 */}
           <div className="flex items-center justify-between text-[11px]">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Coins className="w-3.5 h-3.5 text-primary" />
               <span>이 시즌 포인트</span>
-              <b className={canAfford ? 'text-primary' : 'text-destructive'}>
+              <b className="text-primary">
                 {effectivePoints.toLocaleString()}P
               </b>
             </div>
             <span className="text-muted-foreground/70">
-              한 편 = <b className="text-foreground/80">{ESSAY_POINT_COST}P</b>
+              {period.label} · {period.start.slice(5)} ~ {period.end.slice(5)}
             </span>
           </div>
 
-          {/* 작가 노트 토글 (선택) */}
-          <button
-            type="button"
-            onClick={() => setPromptOpen((v) => !v)}
-            className="w-full flex items-center justify-between text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <span className="flex items-center gap-1.5">
+          {/* 모드 탭 */}
+          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-muted/40">
+            <button
+              type="button"
+              onClick={() => setMode('free')}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all ${
+                mode === 'free'
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Dices className="w-3.5 h-3.5" />
+              <span>AI에게 맡기기</span>
+              <span className="text-[10px] text-primary font-bold">무료</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('custom')}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all ${
+                mode === 'custom'
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
               <Wand2 className="w-3.5 h-3.5" />
-              작가 노트 (선택) — 한 줄 첨가
-            </span>
-            {promptOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          </button>
+              <span>내가 방향 주기</span>
+              <span className="text-[10px] text-primary font-bold">-{ESSAY_CUSTOM_COST}P</span>
+            </button>
+          </div>
 
-          {promptOpen && (
-            <div className="space-y-1">
+          {/* AI 자유 모드 설명 */}
+          {mode === 'free' && (
+            <div className="rounded-xl bg-background/40 border border-border/30 p-3">
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                🎲 AI가 이 기간의 할 일을 알아서 엮어 한 편의 소설로 만들어요.
+                <br />
+                <span className="text-primary font-medium">무료</span> — 부담 없이 몇 번이든 뽑을 수 있어요.
+              </p>
+            </div>
+          )}
+
+          {/* 커스텀 모드 입력 */}
+          {mode === 'custom' && (
+            <div className="space-y-2">
               <textarea
                 value={userPrompt}
                 onChange={(e) => setUserPrompt(e.target.value.slice(0, 120))}
-                placeholder="예: 비 오는 장면 살짝 / 약간 쓸쓸한 톤 / 재회 모티프 살짝 섞어줘"
+                placeholder="예: 비 오는 장면 살짝 / 약간 쓸쓸한 톤 / 재회 모티프 살짝"
                 rows={2}
                 className="w-full resize-none rounded-xl border border-border/60 bg-background/60 px-3 py-2 text-xs leading-relaxed focus:border-primary focus:outline-none placeholder:text-muted-foreground/40"
               />
@@ -170,38 +199,50 @@ export default function StoryPage() {
           )}
 
           {/* 생성 CTA */}
-          <button
-            onClick={handleGenerate}
-            disabled={isGenerating || !partner || !canAfford}
-            className="harubook-cta w-full rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground p-4 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <div className="flex items-center justify-center gap-2">
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span className="font-semibold text-sm">이야기를 쓰는 중…</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  <span className="font-semibold text-sm">
-                    {canAfford
-                      ? `이 기간으로 이야기 쓰기 · -${ESSAY_POINT_COST}P`
-                      : `포인트 ${shortBy}P 더 필요`}
-                  </span>
-                </>
-              )}
-            </div>
-            <p className="text-[11px] opacity-80 mt-1">
-              {period.label} · {period.start} ~ {period.end}
-            </p>
-          </button>
+          {(() => {
+            const isCustom = mode === 'custom';
+            const blocked = isCustom && !canAffordCustom;
+            const needsPrompt = isCustom && !userPrompt.trim();
+            const disabled = isGenerating || !partner || blocked || needsPrompt;
+            return (
+              <button
+                onClick={handleGenerate}
+                disabled={disabled}
+                className="harubook-cta w-full rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground p-4 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span className="font-semibold text-sm">이야기를 쓰는 중…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      <span className="font-semibold text-sm">
+                        {blocked
+                          ? `포인트 ${shortBy}P 더 필요`
+                          : needsPrompt
+                          ? '방향을 한 줄 입력해주세요'
+                          : isCustom
+                          ? `커스텀 소설 쓰기 · -${ESSAY_CUSTOM_COST}P`
+                          : '이야기 쓰기 · 무료'}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <p className="text-[11px] opacity-80 mt-1">
+                  {period.start} ~ {period.end}
+                </p>
+              </button>
+            );
+          })()}
 
-          {!canAfford && !isGenerating && (
+          {mode === 'custom' && !canAffordCustom && !isGenerating && (
             <p className="text-[10px] text-muted-foreground/70 text-center leading-relaxed">
-              🌱 할 일을 더 완료해 나무를 키우면 한 편 더 쓸 수 있어요.
+              🌱 할 일을 더 완료해 나무를 키우면 커스텀 소설을 쓸 수 있어요.
               <br />
-              한 편 쓰면 그 시즌 단계가 살짝 떨어지고, 다시 자라서 또 한 편을 쓰는 사이클이에요.
+              무료 AI 자유 작성은 언제든 바로 이용할 수 있어요.
             </p>
           )}
         </div>

@@ -13,7 +13,7 @@ import { db, now, getTodosForWeek } from '@/lib/db/dexie';
 import type { Essay } from '@/types/essay';
 import type { Partner } from '@/types/partner';
 import type { AIConfig } from '@/types/ai';
-import { getStageByPoints, ESSAY_POINT_COST } from '@/types/stats';
+import { getStageByPoints, ESSAY_FREE_COST, ESSAY_CUSTOM_COST } from '@/types/stats';
 import { useStatsStore } from './useStatsStore';
 
 /* ════════════════════════════════
@@ -79,21 +79,27 @@ export const useEssayStore = create<EssayState>((set, get) => ({
     try {
       const range = weekStart && weekEnd ? { start: weekStart, end: weekEnd } : getWeekRange();
 
-      /* ── 포인트 잔고 체크 ──
-         그 기간(periodStart)이 속한 시즌의 effective points 가
-         ESSAY_POINT_COST 이상이어야 생성 가능. 부족하면 즉시 에러 리턴. */
-      const stats = useStatsStore.getState();
-      await stats.loadStats();
-      const refreshed = useStatsStore.getState().stats;
-      if (refreshed) {
-        const { selectEffectivePointsForDate } = await import('./useStatsStore');
-        const eff = selectEffectivePointsForDate(refreshed, range.start);
-        if (eff < ESSAY_POINT_COST) {
-          set({
-            isGenerating: false,
-            error: `포인트가 부족해요. 한 편 쓰려면 ${ESSAY_POINT_COST}P 필요한데 지금은 ${eff}P 예요. 할 일을 더 완료해서 나무를 키워주세요.`,
-          });
-          return null;
+      /* ── 모드별 비용 결정 ──
+         userPrompt 가 있으면 '커스텀 모드' (150P 소모)
+         없으면 'AI 자유 작성' (무료) */
+      const trimmedPrompt = userPrompt?.trim();
+      const cost = trimmedPrompt ? ESSAY_CUSTOM_COST : ESSAY_FREE_COST;
+
+      /* ── 포인트 잔고 체크 (cost > 0 일 때만) ── */
+      if (cost > 0) {
+        const stats = useStatsStore.getState();
+        await stats.loadStats();
+        const refreshed = useStatsStore.getState().stats;
+        if (refreshed) {
+          const { selectEffectivePointsForDate } = await import('./useStatsStore');
+          const eff = selectEffectivePointsForDate(refreshed, range.start);
+          if (eff < cost) {
+            set({
+              isGenerating: false,
+              error: `커스텀 소설에 필요한 포인트가 부족해요. ${cost}P 필요한데 지금은 ${eff}P 예요. 할 일을 더 완료하거나, 무료 AI 자유 작성을 이용해보세요.`,
+            });
+            return null;
+          }
         }
       }
 
@@ -164,13 +170,14 @@ export const useEssayStore = create<EssayState>((set, get) => ({
       const saved = { ...essay, id: id as number };
       await get().loadEssays();
 
-      // 성공 후 포인트 차감 (그 기간의 시즌에서)
-      const ok = await useStatsStore
-        .getState()
-        .spendSeasonalPoints(ESSAY_POINT_COST, range.start);
-      if (!ok) {
-        // 잔고 체크는 이미 했지만 race condition 방어
-        console.warn('Essay 차감 실패: 포인트 부족');
+      // 성공 후 포인트 차감 (cost > 0 일 때만 — 커스텀 모드)
+      if (cost > 0) {
+        const ok = await useStatsStore
+          .getState()
+          .spendSeasonalPoints(cost, range.start);
+        if (!ok) {
+          console.warn('Essay 차감 실패: 포인트 부족 (race condition)');
+        }
       }
 
       set({ isGenerating: false, selectedEssayId: id as number });

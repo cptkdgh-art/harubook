@@ -191,11 +191,19 @@ export function pointsForCategory(category?: string): number {
 export const SEASON_CARRYOVER_STAGE_DROP = 3;
 
 /**
- * 소설 한 편 쓰는 데 소모되는 포인트.
- * 그 시즌에 나무를 어느 정도 키워야 한 편을 뽑을 수 있게 한다.
- * 5단계 minPoints(500) 보다 살짝 낮게 → 4단계 후반부터 가능.
+ * 소설 한 편 쓰는 데 소모되는 포인트 — 모드별로 다르다.
+ *
+ * - AI 자유 작성: 무료 (옴니버스 연재 본질 = 기본 경험)
+ * - 커스텀 프롬프트: 150P (3단계 어린나무 중반 이상. 4~5일 쌓아야 한 편)
+ *
+ * 자유 작성은 누구나 바로 뽑을 수 있어서 신규 사용자 첫 경험 부담 제거.
+ * 커스텀은 나무 키운 의미가 실제로 드러나는 프리미엄 제어권.
  */
-export const ESSAY_POINT_COST = 350;
+export const ESSAY_FREE_COST = 0;
+export const ESSAY_CUSTOM_COST = 150;
+
+/** @deprecated ESSAY_FREE_COST / ESSAY_CUSTOM_COST 로 분기해서 사용할 것 */
+export const ESSAY_POINT_COST = ESSAY_CUSTOM_COST;
 
 /**
  * 특정 시즌 키 시점의 '실효 포인트' 계산.
