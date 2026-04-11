@@ -485,7 +485,7 @@ export function HaruTree() {
       style={treeStyle}
     >
       {/* 시즌 배경 풍경 (디오라마) */}
-      <div className="absolute inset-0 opacity-35 mix-blend-multiply dark:opacity-30 dark:mix-blend-screen pointer-events-none">
+      <div className="absolute inset-0 opacity-25 mix-blend-multiply dark:opacity-20 dark:mix-blend-screen pointer-events-none">
         <SeasonScenery season={season} />
       </div>
 
