@@ -68,7 +68,9 @@ export default function OnboardingPage() {
 
   const handleThemeSelect = (t: ThemeType) => {
     setTheme(t);
-    setName(DEFAULT_PARTNERS[t].name || '');
+    // 이름은 사용자가 직접 입력하도록 — 기본값 'auto fill' 제거.
+    // 빈 상태에서 placeholder 가 예시를 보여주고, 빈 채로 진행 시
+    // handleComplete 에서 DEFAULT_PARTNERS 가 fallback 으로 적용됨.
     setTimeout(next, 300);
   };
 
@@ -257,7 +259,7 @@ export default function OnboardingPage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="예: 보리, 그림자, 시아…"
+                    placeholder="예: 보리 · 루나 · 서리 · 시아 …"
                     maxLength={10}
                     className="w-full text-center text-lg font-bold py-3 px-4 rounded-2xl
                       bg-card border border-border focus:border-primary focus:outline-none
