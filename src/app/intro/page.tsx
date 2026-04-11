@@ -25,6 +25,7 @@ import {
   Palette,
   Flame,
   Info,
+  TrendingUp,
 } from 'lucide-react';
 
 export default function IntroPage() {
@@ -192,7 +193,13 @@ export default function IntroPage() {
             n={9}
             icon={<Info className="w-4 h-4" />}
             title="무료 · 내보내기/가져오기"
-            desc="기본 기능 전부 무료. 로컬 파일로 내보내고 PC·모바일 간 이어서 쓸 수 있음. (편의 유료 플랜은 BM 설계 완료, 미구현)"
+            desc="기본 기능 전부 무료. 로컬 파일로 내보내서 PC·모바일 간 이어서 쓸 수 있음."
+          />
+          <Feature
+            n={10}
+            icon={<TrendingUp className="w-4 h-4" />}
+            title="유료 플랜 구상 · BM 설계"
+            desc="API 설정·기기 간 동기화가 귀찮다면? 편의성을 개선한 유료 플랜 비즈니스 모델까지 설계 완료. (현재 미구현, 확장 대비)"
           />
         </div>
       </section>
