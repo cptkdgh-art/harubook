@@ -28,6 +28,7 @@ import { CalendarView } from '@/components/todo/CalendarView';
 import { BottomNav } from '@/components/ui/BottomNav';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AnimationToggle } from '@/components/ui/AnimationToggle';
+import { FontSizeToggle } from '@/components/ui/FontSizeToggle';
 import { HaruTree } from '@/components/tree/HaruTree';
 import { today } from '@/lib/db/dexie';
 
@@ -74,6 +75,7 @@ export default function HomePage() {
                 >
                   <HelpCircle className="w-3.5 h-3.5" />
                 </button>
+                <FontSizeToggle />
                 <AnimationToggle />
                 <ThemeToggle />
               </div>

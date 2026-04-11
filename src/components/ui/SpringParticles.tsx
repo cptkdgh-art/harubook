@@ -50,11 +50,13 @@ export function SpringParticles() {
         id: i,
         emoji: cfg.particles[Math.floor(Math.random() * cfg.particles.length)],
         left: Math.random() * 100,
-        size: 0.8 + Math.random() * 1.2,
+        // 최소 1.2rem (≈19px) 부터 — 모바일에서도 확실히 보이게
+        size: 1.2 + Math.random() * 1.0,
         duration: (season === 'winter' ? 22 : 14) + Math.random() * 16,
         delay: Math.random() * -30,
         swayDuration: 3 + Math.random() * 4,
-        opacity: 0.3 + Math.random() * 0.4,
+        // 최소 opacity 0.45 — 흐리지 않게
+        opacity: 0.45 + Math.random() * 0.4,
       });
     }
     return arr;

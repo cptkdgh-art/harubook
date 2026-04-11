@@ -535,3 +535,55 @@ html[data-animate="off"] [data-theme] .harubook-cta,
 html[data-animate="off"] [data-theme] body {
   animation: none !important;
 }
+
+/* ════════════════════════════════
+   글씨 크기 스케일 (CSS zoom)
+   usePreferenceStore 가 html[data-font-scale="..."] 속성을 토글.
+   body 에 zoom 을 걸면 모든 Tailwind `text-[11px]` 같은 하드코딩 px
+   포함해서 UI 전체가 비례 스케일됨.
+   ════════════════════════════════ */
+
+html[data-font-scale="sm"] body { zoom: 0.9; }
+html[data-font-scale="md"] body { zoom: 1; }
+html[data-font-scale="lg"] body { zoom: 1.125; }
+html[data-font-scale="xl"] body { zoom: 1.25; }
+
+/* ════════════════════════════════
+   모바일 애니메이션 강제 활성화 + 파티클 크기 부스트
+   - iOS/Android 접근성 '동작 줄이기' 설정이 기본 ON 인 기기가 많아서
+     앱 내 애니메이션 토글을 명시적으로 사용하는 사용자의 의도를 존중.
+   - 단, html[data-animate="off"] 이 찍혀 있으면 여전히 OFF 유지.
+   - 모바일(작은 뷰포트)에서 이모지가 너무 작아 안 보이는 문제를
+     추가 font-size 배수로 보정.
+   ════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  /* 사용자가 앱 내 ON 토글을 명시적으로 켰으면(= data-animate off 아니면)
+     OS 레벨 reduce 설정을 오버라이드 */
+  html:not([data-animate="off"]) .harubook-petal {
+    animation-name: petal-fall, petal-sway !important;
+    animation-timing-function: linear, ease-in-out !important;
+    animation-iteration-count: infinite, infinite !important;
+    animation-direction: normal, alternate !important;
+  }
+  html:not([data-animate="off"]) .harubook-petal-still {
+    animation-name: petal-fall-still, petal-sway !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* 모바일에서 파티클이 안 보일 정도로 작지 않게 최소 1.1rem 강제 */
+  .harubook-petal {
+    min-width: 1.2rem;
+    min-height: 1.2rem;
+    /* iOS Safari 에서 overflow: hidden + position: fixed 자식 animation
+       안 돌아가는 이슈 대응 — GPU 레이어 재강제 */
+    -webkit-animation-play-state: running !important;
+    animation-play-state: running !important;
+  }
+  .harubook-petal-layer {
+    /* 모바일 Safari 의 stacking context 버그 방어 */
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
+  }
+}
