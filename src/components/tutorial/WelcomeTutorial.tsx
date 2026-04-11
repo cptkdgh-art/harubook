@@ -12,6 +12,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -227,10 +228,17 @@ const STEPS: Step[] = [
 
 export function WelcomeTutorial() {
   const { isOpen, step, init, close, next, prev } = useTutorialStore();
+  const pathname = usePathname();
+
+  // 튜토리얼은 홈 (/home) 에서만 자동 노출 — 랜딩/온보딩/기타 페이지에선 방해 X.
+  // 단, useTutorialStore.open() 으로 수동 호출되면 어디서든 렌더링됨 (헤더 버튼으로 재시청 가능).
+  const isHome = pathname === '/home';
 
   useEffect(() => {
-    init();
-  }, [init]);
+    if (isHome) {
+      init();
+    }
+  }, [init, isHome]);
 
   const isLast = step === TUTORIAL_TOTAL_STEPS - 1;
   const isFirst = step === 0;

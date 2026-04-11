@@ -18,9 +18,11 @@
 import { useEffect } from 'react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { HelpCircle } from 'lucide-react';
 import { useTodoStore } from '@/lib/stores/useTodoStore';
 import { ChatSheet } from '@/components/chat/ChatSheet';
 import { usePartnerStore } from '@/lib/stores/usePartnerStore';
+import { useTutorialStore } from '@/lib/stores/useTutorialStore';
 import { TodoList } from '@/components/todo/TodoList';
 import { CalendarView } from '@/components/todo/CalendarView';
 import { BottomNav } from '@/components/ui/BottomNav';
@@ -36,6 +38,7 @@ import { today } from '@/lib/db/dexie';
 export default function HomePage() {
   const { selectedDate, setSelectedDate } = useTodoStore();
   const { partner, loadPartner } = usePartnerStore();
+  const openTutorial = useTutorialStore((s) => s.open);
 
   useEffect(() => {
     loadPartner();
@@ -62,6 +65,15 @@ export default function HomePage() {
                 {isToday ? '과 함께하는 오늘' : '의 기록'}
               </p>
               <div className="flex items-center gap-1.5 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={openTutorial}
+                  aria-label="튜토리얼 다시 보기"
+                  title="튜토리얼 다시 보기"
+                  className="flex items-center justify-center w-7 h-7 rounded-full border border-border/60 bg-transparent text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                </button>
                 <AnimationToggle />
                 <ThemeToggle />
               </div>
