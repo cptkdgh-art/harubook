@@ -321,6 +321,22 @@ export default function OnboardingPage() {
                 {submitting ? '저장 중…' : '시작하기'}
               </button>
 
+              {/* 강제 건너뛰기 — 설정 전부 기본값으로 홈 직행.
+                  handleComplete 내부에 name/theme/world 모두 fallback 이 있어서
+                  빈 상태에서 바로 호출해도 createPartner 가 기본값으로 저장된다. */}
+              <button
+                onClick={handleComplete}
+                disabled={submitting}
+                className="w-full py-2.5 mt-2 rounded-2xl border border-border/60 bg-transparent text-muted-foreground
+                  text-xs font-medium hover:bg-muted/50 active:scale-[0.98]
+                  disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                설정 건너뛰고 홈으로 →
+              </button>
+              <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
+                이름이나 테마는 나중에 <b>설정 페이지</b>에서 언제든 바꿀 수 있어요
+              </p>
+
               {/* 에러 메시지 */}
               {submitError && (
                 <div className="mt-3 p-3 rounded-xl bg-destructive/10 border border-destructive/30 text-[11px] text-destructive whitespace-pre-wrap leading-relaxed text-left">
