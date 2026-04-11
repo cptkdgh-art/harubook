@@ -24,6 +24,7 @@ import {
 } from '@/lib/stores/useStatsStore';
 import { SEASON_CONFIG, getCurrentSeason } from '@/lib/seasons';
 import { useTodoStore } from '@/lib/stores/useTodoStore';
+import { SeasonScenery } from './SeasonScenery';
 
 /* ════════════════════════════════
    TreeSVG — 4종 × 7단계
@@ -483,6 +484,11 @@ export function HaruTree() {
       data-season={season}
       style={treeStyle}
     >
+      {/* 시즌 배경 풍경 (디오라마) */}
+      <div className="absolute inset-0 opacity-35 mix-blend-multiply dark:opacity-30 dark:mix-blend-screen pointer-events-none">
+        <SeasonScenery season={season} />
+      </div>
+
       {/* 레벨업 flash */}
       <AnimatePresence>
         {levelUpFlash && (
@@ -500,7 +506,7 @@ export function HaruTree() {
         )}
       </AnimatePresence>
 
-      <div className="flex items-center gap-4">
+      <div className="relative z-10 flex items-center gap-4">
         {/* 나무 SVG */}
         <motion.div
           key={`${stage.level}-${season}`}

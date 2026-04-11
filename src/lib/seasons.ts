@@ -106,7 +106,8 @@ export const SEASON_CONFIG: Record<SeasonType, SeasonConfig> = {
     emoji: '🌸',
     months: '3~5월',
     tagline: '벚꽃이 흩날리는 분홍의 계절',
-    particles: ['🌸', '🌷', '🌺', '💮', '🏵️'],
+    // 가중치: 벚꽃 위주, 가끔 다른 꽃
+    particles: ['🌸', '🌸', '🌸', '🌸', '🌷', '🌺', '💮'],
     spinParticles: true,
     leafColors: { light: '#fbb6ce', dark: '#ec4899' },
     trunkColors: { light: '#a1724f', dark: '#6b4423' },
@@ -121,7 +122,8 @@ export const SEASON_CONFIG: Record<SeasonType, SeasonConfig> = {
     emoji: '🌊',
     months: '6~8월',
     tagline: '바다 바람과 녹음이 짙은 계절',
-    particles: ['💧', '🌊', '☀️', '🌿', '🐚'],
+    // 가중치: 물방울 위주, 가끔 조개·잎
+    particles: ['💧', '💧', '💧', '💧', '🌊', '🐚', '🌿'],
     spinParticles: false,
     leafColors: { light: '#6ee7b7', dark: '#059669' },
     trunkColors: { light: '#78716c', dark: '#44403c' },
@@ -136,7 +138,8 @@ export const SEASON_CONFIG: Record<SeasonType, SeasonConfig> = {
     emoji: '🍁',
     months: '9~11월',
     tagline: '단풍이 천천히 내리는 금빛 계절',
-    particles: ['🍁', '🍂', '🍃', '🌰', '🍄'],
+    // 가중치: 단풍잎 위주
+    particles: ['🍁', '🍁', '🍁', '🍂', '🍂', '🍃', '🌰'],
     spinParticles: true,
     leafColors: { light: '#fdba74', dark: '#ea580c' },
     trunkColors: { light: '#92400e', dark: '#451a03' },
@@ -151,7 +154,8 @@ export const SEASON_CONFIG: Record<SeasonType, SeasonConfig> = {
     emoji: '❄️',
     months: '12~2월',
     tagline: '눈이 조용히 내리는 정적의 계절',
-    particles: ['❄️', '✨', '⭐', '🌨️', '☃️'],
+    // 가중치: 눈송이 위주
+    particles: ['❄️', '❄️', '❄️', '❄️', '❄️', '✨', '🌨️'],
     spinParticles: false,
     leafColors: { light: '#86efac', dark: '#166534' },
     trunkColors: { light: '#57534e', dark: '#292524' },
