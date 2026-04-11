@@ -81,18 +81,23 @@ export default function OnboardingPage() {
 
   const handleComplete = async () => {
     if (submitting) return;
-    if (!theme || !world) {
-      setSubmitError('테마와 세계관을 먼저 선택해주세요');
-      return;
-    }
+
+    /* ── state 유실 복구 ──
+       AnimatePresence 로 step 전환 중 React state 가 날아가거나,
+       브라우저 뒤로가기로 state 리셋된 경우 theme/world 가 null 일 수 있다.
+       경고 띄우지 말고 '적절한 기본값' 으로 조용히 fallback 해서
+       사용자가 플로우에서 막히지 않게. */
+    const finalTheme: ThemeType = theme ?? 'auto';
+    const finalWorld: WorldType = world ?? 'modern';
+
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const defaults = DEFAULT_PARTNERS[theme];
+      const defaults = DEFAULT_PARTNERS[finalTheme] ?? DEFAULT_PARTNERS.auto;
       await createPartner(
         name.trim() || defaults.name || '파트너',
-        theme,
-        world,
+        finalTheme,
+        finalWorld,
         defaults.personality as Personality,
         userName.trim() || undefined
       );
