@@ -8,12 +8,13 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePartnerStore } from '@/lib/stores/usePartnerStore';
 import { DEFAULT_PARTNERS, THEME_LABELS } from '@/types/partner';
 import type { ThemeType, WorldType, Personality } from '@/types/partner';
+import { db } from '@/lib/db/dexie';
 
 const THEME_OPTIONS: { key: ThemeType; accent: string }[] = [
   { key: 'auto',   accent: 'border-primary/50 hover:border-primary' },
@@ -37,6 +38,29 @@ export default function OnboardingPage() {
   const [world, setWorld] = useState<WorldType | null>(null);
   const [name, setName] = useState('');
   const [userName, setUserName] = useState('');
+
+  /* ── 안전장치 ──
+     이미 파트너가 있는 사용자가 실수로 /onboarding 에 재진입하면
+     (이전 버전 북마크, 브라우저 뒤로가기 등) createPartner 호출 시
+     db.partner.clear() 로 기존 데이터가 덮어써지는 사고를 막는다.
+     파트너가 이미 존재하면 즉시 /home 으로 리다이렉트. */
+  useEffect(() => {
+    let alive = true;
+    db.partner
+      .toCollection()
+      .first()
+      .then((p) => {
+        if (alive && p) {
+          router.replace('/home');
+        }
+      })
+      .catch(() => {
+        /* 실패 시 그대로 온보딩 진행 */
+      });
+    return () => {
+      alive = false;
+    };
+  }, [router]);
 
   const next = () => setStep(s => Math.min(s + 1, STEPS.length - 1));
 

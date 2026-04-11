@@ -11,6 +11,7 @@
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -27,8 +28,40 @@ import {
   Info,
   TrendingUp,
 } from 'lucide-react';
+import { db } from '@/lib/db/dexie';
 
 export default function IntroPage() {
+  /* ── 파트너 존재 여부 감지 ──
+     이미 온보딩을 끝낸 사용자는 "바로 시작하기" 가 /onboarding 이 아니라
+     /home 으로 가야 한다. /onboarding 재진입 시 createPartner 가
+     db.partner.clear() 로 기존 데이터를 덮어쓰기 때문.
+     - null: 체크 중 (SSR 플래시 방어)
+     - true: 이미 있음 → "홈으로 바로가기"
+     - false: 신규 → "바로 시작하기 → /onboarding" */
+  const [hasPartner, setHasPartner] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    db.partner
+      .toCollection()
+      .first()
+      .then((p) => {
+        if (alive) setHasPartner(!!p);
+      })
+      .catch(() => {
+        if (alive) setHasPartner(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const ctaHref = hasPartner ? '/home' : '/onboarding';
+  const ctaLabel = hasPartner ? '홈으로 바로가기' : '바로 시작하기';
+  const ctaSubLabel = hasPartner
+    ? '이미 시작한 하루책으로 이어서 들어가요'
+    : '무료 · 브라우저만 있으면 OK · 3분 이내 첫 소설';
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 via-background to-background dark:from-pink-950/20 dark:via-background dark:to-background">
       {/* ═══════════════ HERO ═══════════════ */}
@@ -59,19 +92,23 @@ export default function IntroPage() {
             AI 파트너가 그 기록을 한 편의 <b className="text-foreground">소설</b>로 써주는 감성 Todo 앱.
           </p>
 
-          {/* 바로 시작하기 CTA */}
+          {/* 바로 시작하기 / 홈으로 바로가기 CTA (파트너 존재 여부로 분기) */}
           <Link
-            href="/onboarding"
+            href={ctaHref}
             className="group inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold text-base shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
             <Sparkles className="w-5 h-5" />
-            바로 시작하기
+            {ctaLabel}
             <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
 
-          <p className="text-[11px] text-muted-foreground/70 mt-4">
-            무료 · 브라우저만 있으면 OK · 3분 이내 첫 소설
-          </p>
+          <p className="text-[11px] text-muted-foreground/70 mt-4">{ctaSubLabel}</p>
+
+          {hasPartner && (
+            <p className="text-[10px] text-primary/80 mt-1">
+              💡 이미 설정을 마치셨어요 — 온보딩을 다시 하면 기존 기록이 덮어써져요
+            </p>
+          )}
         </div>
       </section>
 
@@ -266,25 +303,45 @@ export default function IntroPage() {
         <div className="rounded-3xl bg-gradient-to-br from-primary via-primary/80 to-primary/70 p-8 md:p-10 text-center text-primary-foreground shadow-xl shadow-primary/25">
           <div className="text-4xl mb-3">🌸</div>
           <h2 className="text-2xl md:text-3xl font-black mb-3 leading-tight">
-            오늘의 체크박스,
-            <br />
-            내일의 챕터로
+            {hasPartner ? (
+              <>
+                이어서,
+                <br />
+                다음 챕터로
+              </>
+            ) : (
+              <>
+                오늘의 체크박스,
+                <br />
+                내일의 챕터로
+              </>
+            )}
           </h2>
           <p className="text-sm opacity-90 mb-6 leading-relaxed">
-            3분이면 첫 소설을 받아볼 수 있어요.
-            <br />
-            AI 파트너가 당신을 기다리고 있습니다.
+            {hasPartner ? (
+              <>
+                이미 만들어둔 하루책이 있어요.
+                <br />
+                AI 파트너가 기다리고 있습니다.
+              </>
+            ) : (
+              <>
+                3분이면 첫 소설을 받아볼 수 있어요.
+                <br />
+                AI 파트너가 당신을 기다리고 있습니다.
+              </>
+            )}
           </p>
           <Link
-            href="/onboarding"
+            href={ctaHref}
             className="group inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-background text-foreground font-bold text-base shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
             <Sparkles className="w-5 h-5 text-primary" />
-            바로 시작하기
+            {ctaLabel}
             <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
           <p className="text-[11px] opacity-70 mt-4">
-            무료 · BYOK (OpenRouter 키) · Local-First
+            {hasPartner ? '로컬 저장 데이터 그대로 유지' : '무료 · BYOK (OpenRouter 키) · Local-First'}
           </p>
         </div>
       </section>
