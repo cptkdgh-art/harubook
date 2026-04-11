@@ -38,6 +38,51 @@ export interface EssayPromptInput {
    * 예: "비가 오는 장면 넣어줘", "조금 우울한 톤으로", "반전 결말로"
    */
   userPrompt?: string;
+
+  /** 이번 편 목표 분량 (자). 분할 모드면 한 편당 분량. */
+  targetChars?: number;
+  /** 총 편 수 (옵션 — 분할 시) */
+  totalParts?: number;
+  /** 이번 편 순서 1부터 시작 (옵션 — 분할 시) */
+  partIndex?: number;
+}
+
+/* ════════════════════════════════
+   1-b. 구간별 분량 테이블 (할 일 개수 → 편 수 + 편당 분량)
+   ════════════════════════════════
+   한 줄 상수라 쉽게 튜닝 가능.
+   완료된 todo 기준으로 구간 결정. 15개 초과부터 2편으로 분할. */
+
+interface LengthTier {
+  /** 이 구간에 들어오는 '완료 todo 개수 상한' (inclusive) */
+  maxCompleted: number;
+  parts: number;
+  /** 한 편당 목표 분량 (자) */
+  charsPerPart: number;
+}
+
+export const LENGTH_TIERS: LengthTier[] = [
+  { maxCompleted: 5,        parts: 1, charsPerPart: 1200 },  // 0~5: 단편
+  { maxCompleted: 10,       parts: 1, charsPerPart: 1800 },  // 6~10: 일반
+  { maxCompleted: 15,       parts: 1, charsPerPart: 2500 },  // 11~15: 충실
+  { maxCompleted: 22,       parts: 2, charsPerPart: 1700 },  // 16~22: 2편 × 1700 = 3400
+  { maxCompleted: 30,       parts: 2, charsPerPart: 2100 },  // 23~30: 2편 × 2100 = 4200
+  { maxCompleted: Infinity, parts: 2, charsPerPart: 2500 },  // 31+: 2편 × 2500 = 5000 (cap)
+];
+
+export interface LengthPlan {
+  parts: number;
+  charsPerPart: number;
+  /** 편 간 tolerance — 프롬프트에 "약 ±200자" 로 전달 */
+  tolerance: number;
+}
+
+/** 완료 todo 개수로부터 생성 계획 산출 */
+export function calculateLengthPlan(completedCount: number): LengthPlan {
+  const tier =
+    LENGTH_TIERS.find((t) => completedCount <= t.maxCompleted) ??
+    LENGTH_TIERS[LENGTH_TIERS.length - 1];
+  return { parts: tier.parts, charsPerPart: tier.charsPerPart, tolerance: 200 };
 }
 
 /* ════════════════════════════════
@@ -133,7 +178,18 @@ ${currentStage.partnerPresence}
 
 /** 공통 베이스 프롬프트 생성 */
 export function buildBasePrompt(input: EssayPromptInput): string {
-  const { partner, todos, periodStart, periodEnd, previousTeaser, userName, userPrompt } = input;
+  const {
+    partner,
+    todos,
+    periodStart,
+    periodEnd,
+    previousTeaser,
+    userName,
+    userPrompt,
+    targetChars,
+    totalParts,
+    partIndex,
+  } = input;
   const user = userName?.trim() || partner.userName?.trim() || '나';
   const todoSummary = summarizeTodos(todos);
   const completedCount = todos.filter((t) => t.status === 'completed').length;
@@ -141,6 +197,33 @@ export function buildBasePrompt(input: EssayPromptInput): string {
   const personality = personalityLine(partner.personality);
   const world = worldDescription(partner.world);
   const treeBlock = buildTreeBlock(input);
+
+  // 분량 지시 — 인자로 받았으면 사용, 아니면 완료 개수로 자동 계산
+  const plan =
+    targetChars !== undefined
+      ? { parts: totalParts ?? 1, charsPerPart: targetChars, tolerance: 200 }
+      : calculateLengthPlan(completedCount);
+  const minChars = plan.charsPerPart - plan.tolerance;
+  const maxChars = plan.charsPerPart + plan.tolerance;
+
+  // Part N/M 컨텍스트 (분할 모드에서만)
+  const isMultiPart = (totalParts ?? plan.parts) > 1 && partIndex !== undefined;
+  const partContextBlock = isMultiPart
+    ? `\n━━━━━━━━━━━━━━━━━━━━
+📖 옴니버스 분할 모드 — Part ${partIndex} / ${totalParts ?? plan.parts}
+━━━━━━━━━━━━━━━━━━━━
+이번 주는 할 일이 많아서 이야기가 ${totalParts ?? plan.parts}편으로 나뉜다. 당신이 지금 쓰는 편은 ${partIndex}번째다.
+
+${
+  partIndex === 1
+    ? '• 전반부: 한 주의 시작과 중반을 담아라. 도입과 인물 소개, 몇 개의 핵심 장면을 놓고, 마지막은 "다음 편으로 이어지는 여운" 으로 닫아라. 완전히 결말짓지 마라.'
+    : '• 후반부 (마지막 편): 한 주의 후반과 결말을 담아라. 지난 편 예고와 자연스럽게 이어지게, 클라이맥스와 여운 있는 결말을 담아라. 이게 이번 주 서사의 마지막 편이다.'
+}
+
+• 같은 주의 todo 기록을 나눠서 다루고 있지만, 두 편이 하나의 연속된 이야기처럼 느껴져야 한다.
+• 앞/뒤 편과 시점·톤·파트너의 감정선이 끊기지 않게 해라.
+`
+    : '';
 
   // 세계관별 소설 방향성
   const worldBlock = WORLD_PROMPTS[partner.world];
@@ -177,15 +260,25 @@ ${genderBlock}
 ${todoSummary}
 
 완료: ${completedCount} / 총 ${totalCount}
-${previousTeaser ? `\n지난 화 예고: "${previousTeaser}"\n` : ''}${treeBlock}${userGuideBlock}
+${previousTeaser ? `\n지난 화 예고: "${previousTeaser}"\n` : ''}${treeBlock}${userGuideBlock}${partContextBlock}
 ━━━━━━━━━━━━━━━━━━━━
 🎯 작업 — "수필과 단편 소설의 중간" 을 써라
 ━━━━━━━━━━━━━━━━━━━━
-1. 위 할 일 기록을 실제 장면으로 해석하되, 전부 나열하지 마라. 3~5개 장면만 고르고 나머지는 배경·언급으로 스쳐 지나가게 하라.
+1. 위 할 일 기록을 실제 장면으로 해석하되, 전부 나열하지 마라. ${
+    isMultiPart ? '3~6개' : '3~5개'
+  } 장면만 고르고 나머지는 배경·언급으로 스쳐 지나가게 하라.
 2. ${user}와 ${partner.name} 둘 다 주인공이다. 파트너는 단순 응원봇이 아니다 — 자신의 사소한 동작, 시선, 작은 생각의 흔들림까지 드러내라.
-3. 분량: 1200~1600자.
+3. 분량: 약 ${plan.charsPerPart}자 (허용 범위 ${minChars}~${maxChars}자). 이 범위를 반드시 지켜라 — 너무 짧거나 길면 안 된다.${
+    isMultiPart
+      ? ` 지금 편은 ${totalParts ?? plan.parts}편 중 ${partIndex}번째이니 "한 편" 분량만 써라.`
+      : ''
+  }
 4. 완료한 일은 성취로, 미완의 일은 내일의 여백으로 다뤄라. 비난하지 마라.
-5. 소설 마지막에 "다음 주 예고" 한 문장 (15~25자).
+5. 소설 마지막에 ${
+    isMultiPart && partIndex !== (totalParts ?? plan.parts)
+      ? '"다음 편으로 이어지는 여운" 한 문장 (15~25자) — 다음 편 예고'
+      : '"다음 주 예고" 한 문장 (15~25자)'
+  }.
 6. 하루나무 상태 블록의 '운 스탯'과 '성장' 지침을 반드시 서사에 반영하라.
 
 ━━━━━━━━━━━━━━━━━━━━

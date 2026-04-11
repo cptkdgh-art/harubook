@@ -15,6 +15,7 @@ import type { Partner } from '@/types/partner';
 import type { AIConfig } from '@/types/ai';
 import { getStageByPoints, ESSAY_FREE_COST, ESSAY_CUSTOM_COST } from '@/types/stats';
 import { useStatsStore } from './useStatsStore';
+import { calculateLengthPlan } from '@/lib/prompts/essay-base';
 
 /* ════════════════════════════════
    1. 주간 범위 계산
@@ -127,47 +128,84 @@ export const useEssayStore = create<EssayState>((set, get) => ({
       // 지난 주 단계 = 현재 - 이번 주 포인트
       const previousStage = getStageByPoints(Math.max(0, totalPoints - weekPoints));
 
-      const res = await fetch('/api/essay', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          apiKey: aiConfig.apiKey,
-          modelId: aiConfig.modelId,
-          baseUrl: aiConfig.baseUrl,
-          partner,
-          todos,
-          periodStart: range.start,
-          periodEnd: range.end,
-          previousTeaser,
-          // 우선순위: 함수 인자 > partner에 저장된 닉네임 > undefined → 서버에서 '나' fallback
-          userName: userName || partner.userName,
-          currentStage,
-          previousStage,
-          totalPoints,
-          weekPoints,
-          userPrompt,
-        }),
-      });
+      /* ── 완료 개수에 따라 분량 계획 결정 ──
+         N ≤ 15: 1편 / N > 15: 2편 분할. 한 편당 목표 분량은 구간 테이블에서. */
+      const completedCount = todos.filter((t) => t.status === 'completed').length;
+      const plan = calculateLengthPlan(completedCount);
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: '네트워크 오류' }));
-        throw new Error(err.error || '소설 생성 실패');
-      }
+      /* ── 편별 todo 분할 (완료된 것만 날짜순, 미완료는 공통 컨텍스트) ── */
+      const completed = todos
+        .filter((t) => t.status === 'completed')
+        .sort((a, b) => (a.date + (a.time || '') > b.date + (b.time || '') ? 1 : -1));
+      const uncompleted = todos.filter((t) => t.status !== 'completed');
 
-      const data = await res.json();
-
-      const essay: Essay = {
-        type: 'weekly',
-        title: data.title,
-        content: data.content,
-        teaser: data.teaser,
-        periodStart: range.start,
-        periodEnd: range.end,
-        createdAt: now(),
+      const splitTodos = (partIdx: number): typeof todos => {
+        if (plan.parts === 1) return todos;
+        const sliceSize = Math.ceil(completed.length / plan.parts);
+        const start = (partIdx - 1) * sliceSize;
+        const end = start + sliceSize;
+        return [...completed.slice(start, end), ...uncompleted];
       };
 
-      const id = await db.essays.add(essay);
-      const saved = { ...essay, id: id as number };
+      /* ── 편별 루프 생성 ── */
+      const savedEssays: (Essay & { id: number })[] = [];
+      let teaserForNextPart: string | undefined = previousTeaser;
+      let lastId: number | null = null;
+
+      for (let i = 1; i <= plan.parts; i++) {
+        const partTodos = splitTodos(i);
+        const res = await fetch('/api/essay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            apiKey: aiConfig.apiKey,
+            modelId: aiConfig.modelId,
+            baseUrl: aiConfig.baseUrl,
+            partner,
+            todos: partTodos,
+            periodStart: range.start,
+            periodEnd: range.end,
+            previousTeaser: teaserForNextPart,
+            // 우선순위: 함수 인자 > partner에 저장된 닉네임 > undefined → 서버에서 '나' fallback
+            userName: userName || partner.userName,
+            currentStage,
+            previousStage,
+            totalPoints,
+            weekPoints,
+            userPrompt,
+            targetChars: plan.charsPerPart,
+            totalParts: plan.parts,
+            partIndex: i,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: '네트워크 오류' }));
+          throw new Error(
+            err.error || `소설 생성 실패 (${i}/${plan.parts}편)`
+          );
+        }
+
+        const data = await res.json();
+        const titleSuffix = plan.parts > 1 ? ` · Part ${i}/${plan.parts}` : '';
+        const essay: Essay = {
+          type: 'weekly',
+          title: (data.title || `${partner.name}과 보낸 한 주`) + titleSuffix,
+          content: data.content,
+          teaser: data.teaser,
+          periodStart: range.start,
+          periodEnd: range.end,
+          createdAt: now(),
+        };
+        const id = await db.essays.add(essay);
+        lastId = id as number;
+        savedEssays.push({ ...essay, id: lastId });
+
+        // 다음 편의 previousTeaser 로 이 편의 teaser 전달 (옴니버스 연결)
+        teaserForNextPart = data.teaser || teaserForNextPart;
+      }
+
+      const saved = savedEssays[savedEssays.length - 1];
       await get().loadEssays();
 
       // 성공 후 포인트 차감 (cost > 0 일 때만 — 커스텀 모드)
@@ -180,7 +218,9 @@ export const useEssayStore = create<EssayState>((set, get) => ({
         }
       }
 
-      set({ isGenerating: false, selectedEssayId: id as number });
+      // 분할된 경우 첫 번째 편을 선택 (사용자가 Part 1부터 읽도록)
+      const firstId = savedEssays[0]?.id ?? lastId;
+      set({ isGenerating: false, selectedEssayId: firstId });
       return saved;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '알 수 없는 오류';

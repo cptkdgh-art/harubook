@@ -43,6 +43,9 @@ export async function POST(req: NextRequest) {
       totalPoints,
       weekPoints,
       userPrompt,
+      targetChars,
+      totalParts,
+      partIndex,
     } = body as {
       apiKey: string;
       modelId: string;
@@ -58,6 +61,9 @@ export async function POST(req: NextRequest) {
       totalPoints?: number;
       weekPoints?: number;
       userPrompt?: string;
+      targetChars?: number;
+      totalParts?: number;
+      partIndex?: number;
     };
 
     if (!apiKey || !modelId) {
@@ -83,6 +89,9 @@ export async function POST(req: NextRequest) {
       totalPoints,
       weekPoints,
       userPrompt,
+      targetChars,
+      totalParts,
+      partIndex,
     };
 
     const prompt = buildSpringPrompt(input);
@@ -106,7 +115,8 @@ export async function POST(req: NextRequest) {
         { role: 'user', content: prompt },
       ],
       temperature: 0.85,
-      max_tokens: 3000,
+      // 한글 1자 ≈ 1.5~2 토큰. 최대 2700자 타겟 + JSON overhead + 여유분.
+      max_tokens: 6000,
     });
 
     const raw = completion.choices[0]?.message?.content || '';
