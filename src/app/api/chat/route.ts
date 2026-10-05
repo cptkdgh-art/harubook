@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 키 길이 검증
-    if (typeof apiKey !== 'string' || apiKey.length < 30) {
+    if (typeof apiKey !== 'string' || apiKey.trim().length < 30) {
       return NextResponse.json({
         action: 'chat',
         todos: [],
@@ -189,7 +189,7 @@ export async function POST(req: NextRequest) {
         lower.includes('capacity')
       ) {
         friendly =
-          '🚦 이 모델이 지금 너무 붐벼요. AI 설정에서 다른 무료 모델(Mistral/DeepSeek)로 바꿔주세요.';
+          '🚦 이 모델이 지금 너무 붐벼요. AI 설정에서 다른 무료 모델로 바꿔주세요.';
       } else if (
         lower.includes('no endpoints') ||
         lower.includes('not found')

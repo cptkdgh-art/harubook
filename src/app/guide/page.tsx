@@ -107,7 +107,7 @@ export default function GuidePage() {
                   하루책 홈 → 우하단 <b>✨ 플로팅</b> → 설정 → 키 붙여넣기
                 </li>
                 <li>
-                  추천 모델: <b>GPT-OSS 120B ⭐ 무료</b>
+                  추천 모델: <b>Qwen3.8 27B ⭐ 무료</b> (한국어가 자연스러워요)
                 </li>
               </ol>
               💡 AI 없이도 할 일·하루나무·파일 백업은 전부 작동해요.

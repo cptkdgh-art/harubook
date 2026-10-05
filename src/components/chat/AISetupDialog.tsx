@@ -16,6 +16,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useAIStore } from '@/lib/stores/useAIStore';
 import { FREE_MODELS, PAID_MODELS, DEFAULT_MODEL } from '@/types/ai';
+import { checkOpenRouterKey } from '@/lib/ai/keyFormat';
 import {
   ExternalLink,
   Check,
@@ -45,6 +46,7 @@ export function AISetupDialog({ open, onClose }: Props) {
   const [apiKey, setApiKey] = useState('');
   const [modelId, setModelId] = useState(DEFAULT_MODEL.id);
   const [saving, setSaving] = useState(false);
+  const [checkMessage, setCheckMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   // 다이얼로그가 열릴 때만 기존 config → 로컬 state 동기화
   // (rerender-derived-state-no-effect: open 의존성으로 불필요한 재동기화 억제)
@@ -55,15 +57,39 @@ export function AISetupDialog({ open, onClose }: Props) {
     }
   }, [open, config]);
 
+  const format = checkOpenRouterKey(apiKey);
+
   const handleSave = async () => {
-    if (!apiKey.trim()) return;
+    if (!format.ok) return;
     setSaving(true);
-    await saveConfig(apiKey.trim(), modelId);
+    setCheckMessage(null);
+    // 저장 전에 OpenRouter 에 키가 살아 있는지 확인(과금 없음). 거부된 키는 저장하지 않는다.
+    let result: { ok: boolean; message: string; unverified?: boolean } = { ok: true, message: '', unverified: true };
+    try {
+      const res = await fetch('/api/ai-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: format.key }),
+      });
+      result = await res.json();
+    } catch {
+      result = { ok: true, unverified: true, message: '연결 확인을 못 했어요. 키는 저장했어요.' };
+    }
+    if (!result.ok) {
+      setCheckMessage({ ok: false, text: result.message });
+      setSaving(false);
+      return;
+    }
+    await saveConfig(format.key, modelId);
     setSaving(false);
+    if (result.unverified) {
+      setCheckMessage({ ok: true, text: result.message });
+      return;
+    }
     onClose();
   };
 
-  const keyEntered = apiKey.trim().length > 10;
+  const keyEntered = format.ok;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -150,16 +176,23 @@ export function AISetupDialog({ open, onClose }: Props) {
             <Input
               type="password"
               value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              onChange={(e) => { setApiKey(e.target.value); setCheckMessage(null); }}
               placeholder="sk-or-v1-..."
               className="h-10 font-mono text-sm"
               autoComplete="off"
               spellCheck={false}
             />
 
-            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3 text-emerald-500" />
-              이 기기에만 저장돼요. 서버로 전송되지 않아요.
+            {apiKey.trim() && !format.ok && format.message && (
+              <p className="text-[11px] text-amber-600">{format.message}</p>
+            )}
+            {checkMessage && (
+              <p className={`text-[11px] ${checkMessage.ok ? 'text-emerald-600' : 'text-red-500'}`}>{checkMessage.text}</p>
+            )}
+
+            <p className="text-[10px] text-muted-foreground flex items-start gap-1">
+              <ShieldCheck className="w-3 h-3 text-emerald-500 flex-shrink-0 mt-0.5" />
+              키는 이 기기에만 저장돼요. AI를 부를 때만 하루책 서버를 거쳐 OpenRouter로 전달되고, 서버에는 남기지 않아요.
             </p>
           </section>
 
@@ -242,7 +275,7 @@ export function AISetupDialog({ open, onClose }: Props) {
               font-bold text-sm hover:bg-primary/90 active:scale-[0.98]
               disabled:opacity-30 transition-all"
           >
-            {saving ? '저장 중…' : isConfigured ? '✓ 설정 업데이트' : '✓ 설정 완료하고 시작하기'}
+            {saving ? '키 확인 중…' : isConfigured ? '✓ 확인하고 설정 업데이트' : '✓ 확인하고 시작하기'}
           </button>
 
         </div>
