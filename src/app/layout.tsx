@@ -32,6 +32,7 @@ const geistMono = Geist_Mono({
    ════════════════════════════════ */
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://harubook.vercel.app'),
   title: '하루책 — AI 파트너와 함께 쓰는 투두',
   description:
     '당신과 AI 파트너가 공동 주인공인 소설이 매주 연재되는 투두 앱. 할 일을 해낼수록 하루나무가 자라고, 당신만의 이야기가 매주 한 편씩 써집니다.',
@@ -58,6 +59,22 @@ export const metadata: Metadata = {
     description: '할 일이 매주 한 편의 소설로 연재돼요',
     locale: 'ko_KR',
     type: 'website',
+    url: 'https://harubook.vercel.app',
+    siteName: '하루책',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: '하루책 — AI 파트너와 함께 쓰는 투두',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '하루책 — AI 파트너와 함께 쓰는 투두',
+    description: '할 일이 매주 한 편의 소설로 연재돼요',
+    images: ['/opengraph-image'],
   },
 };
 
@@ -66,7 +83,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: 'cover', // iOS 노치 대응
+  viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#fdf2f8' },
     { media: '(prefers-color-scheme: dark)',  color: '#0f1218' },
